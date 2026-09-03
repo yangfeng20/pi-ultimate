@@ -66,7 +66,7 @@ ls ~/.pi/agent/skills/ 2>/dev/null
 | M2 TUI 模式 | 全部平台 | settings.json 中 `tuiMode` 为 `fullscreen` |
 | M3 命令超时 | 全部平台 | AGENTS.md 含 timeout 规范（grep ≤180s / 其他 ≤300s） |
 | M4 搜索工具链 | 全部平台 | rg 已安装；AGENTS.md 含排除产物目录 + rg 优先规则 |
-| M5 按需代理 | 全部平台 | 已配置 pi-p 包装命令（或 settings.json 的 httpProxy） |
+| M5 按需代理 | 全部平台 | **无法机器探测**（用户可能自定义命名/实现方式），体检时标记为 ⏭ 待确认，进入剧本时改为“用户确认 + 手动自检” |
 | M6 pi-subagents | 全部平台 | 插件已装且版本 ≥0.62（sessionOnly 能力） |
 | M7 pi-schedule-status | 全部平台 | 官方扩展库已安装该插件 |
 | M8 工作流模板 | 全部平台 | 已有自定义巡检/值班类 skill 或 AGENTS.md 有相关流程 |
@@ -79,8 +79,7 @@ ls ~/.pi/agent/skills/ 2>/dev/null
 ✅ M1 命令执行环境   已就绪（Git Bash 正常，编码/引号规范已注入）
 ⚠️ M2 TUI 模式       未开启（痛点：长输出滚屏与输入框打架，回看困难）
 ⚠️ M4 搜索工具链     rg 未安装（痛点：grep 扫 node_modules 会卡到怀疑人生）
-⚠️ M5 按需代理       未配置 pi-p（痛点：访问 GitHub 失败，又不想开全局代理）
-⏭ M5 按需代理       跳过（本次未提供代理信息）
+⚠️ M5 按需代理       待确认（痛点：访问 GitHub 失败，又不想开全局代理。需用户确认是否已配过/是否要配）
 ```
 
 然后进入逐项处理：**只处理 ⚠️ 项，✅/⏭ 跳过**。
@@ -88,6 +87,8 @@ ls ~/.pi/agent/skills/ 2>/dev/null
 ## 5. 逐模块增强剧本
 
 每个模块的处理步骤统一为：**① 简述痛点 → ② 询问是否开启 → ③ 同意则自动配置并验证 → ④ 记录结果**。
+
+> 注意：**只有 M5 例外**——它的“是否已配置”无法靠机器可靠探测（用户自定义命名/实现），改为“用户确认 + 验证用户已有配置”，见 M5 剧本。其余模块的机器探测（读文件 / 查包清单）是可靠的，直接照做。
 
 ### M1 命令执行环境（仅 Windows）
 
@@ -128,12 +129,20 @@ ls ~/.pi/agent/skills/ 2>/dev/null
 ### M5 按需代理（pi-p 包装命令）
 
 - 痛点：国内访问 GitHub / 搜索国外资源失败；不想开全局代理，也不想所有 Pi 进程都走代理——要按需。
-- 增强动作：
-  1. 询问代理地址与端口（如 `127.0.0.1:7890`），一次问清；无代理则跳过并注明。
-  2. 按平台生成 pi-p：
-     - Windows：创建 `piproxy.cmd`（写入 `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY`，再 `pi.cmd %*`）放到 PATH 目录。
-     - macOS/Linux：生成 `pi-p()` shell 函数（同样写入代理环境变量）追加到 `~/.zshrc` / `~/.bashrc`。
-  3. 说明：想走代理用 `pi-p`，不想用 `pi`；`setlocal`/函数局部变量保证只影响 Pi 进程及其子进程。
+- **不机器探测，改为用户确认**：因为用户可能自定义命令名（pi-p/piproxy/其他）或实现方式（bat/shell 函数/alias/httpProxy），AI 靠 which/type/PATH 遍历猜不全面，可能误判。所以先问用户。
+- 剧本：
+  1. 简述痛点（访问 GitHub 失败、不想全局代理、想按需）。
+  2. 问用户：「你是否已经配过按需代理（例如自定义了一个带代理启动 pi 的命令，或 settings.json 配了 httpProxy）？」
+     - 用户答“已配” → 让用户告知怎么调的（命令名 / 实现方式），AI 按用户说的方式**帮用户验证能不能跑**（如 `type <用户给的命令>`、跑一次 `curl -I https://github.com` 看是否 200）。不重新生成，不覆盖用户已有配置。
+     - 用户答“没配 / 忘了” → 问是否要解决。
+       - 要 → 进入下一步生成。
+       - 不要 → 记为“未启用”，跳过，不纠缠。
+  3. 生成（用户同意时）：
+     - 询问代理地址与端口（如 `127.0.0.1:7890`），一次问清；无代理则跳过并注明。
+     - 按平台生成 pi-p：
+       - Windows：创建 `piproxy.cmd`（写入 `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY`，再 `pi.cmd %*`）放到 PATH 目录。
+       - macOS/Linux：生成 `pi-p()` shell 函数（同样写入代理环境变量）追加到 `~/.zshrc` / `~/.bashrc`。
+     - 说明：想走代理用 `pi-p`，不想用 `pi`；`setlocal`/函数局部变量保证只影响 Pi 进程及其子进程。
   4. 备选（全都要走代理时）：写 `httpProxy` 到 settings.json。
 - 验证：`pi-p` 后 `curl -I https://github.com` 返回 200；`pi` 不受影响。
 
