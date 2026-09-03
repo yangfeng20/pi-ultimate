@@ -24,11 +24,10 @@
 | | M2 | TUI 模式 | 滚屏与输入框打架、长输出难回看 |
 | | M3 | 命令超时 | 命令卡死拖垮整个会话 |
 | | M4 | 搜索工具链 | grep 扫 node_modules 卡三分钟、GBK 乱码 |
-| | M5 | 命令别名 | 高频长命令重复输入 |
-| | M6 | 代理设置 | 访问 GitHub / 搜索国外资源失败 |
-| **增强层**（工作流） | M7 | pi-subagents | 主会话不堪重负、定时任务串台 |
-| | M8 | pi-schedule-status | 定时任务跑了没跑全靠猜 |
-| | M9 | 工作流模板 | bug 巡检、值班排查全靠人肉盯 |
+| | M5 | 按需代理 | 访问 GitHub 失败，又不想开全局代理 |
+| **增强层**（工作流） | M6 | pi-subagents | 主会话不堪重负、定时任务串台 |
+| | M7 | pi-schedule-status | 定时任务跑了没跑全靠猜 |
+| | M8 | 工作流模板 | bug 巡检、值班排查全靠人肉盯 |
 
 ## 📦 一句话安装
 
@@ -76,16 +75,15 @@
 | M2 | [docs/m2-tui-mode.md](docs/m2-tui-mode.md) | TUI 模式（fullscreen / sticky 输入框） |
 | M3 | [docs/m3-timeout.md](docs/m3-timeout.md) | 命令超时规范（防卡死） |
 | M4 | [docs/m4-grep.md](docs/m4-grep.md) | 搜索工具链（rg 安装 + grep 排除模式） |
-| M5 | [docs/m5-alias.md](docs/m5-alias.md) | 命令别名 |
-| M6 | [docs/m6-proxy.md](docs/m6-proxy.md) | 代理设置（不开全局，按需生效） |
+| M5 | [docs/m5-proxy.md](docs/m5-proxy.md) | 按需代理（pi-p 包装命令） |
 
 ### 增强层（工作流）
 
 | 模块 | 文档 | 一句话说明 |
 |---|---|---|
-| M7 | [docs/m7-subagents.md](docs/m7-subagents.md) | pi-subagents 插件 + sessionOnly 定时任务 |
-| M8 | [docs/m8-schedule-status.md](docs/m8-schedule-status.md) | pi-schedule-status 状态栏插件 |
-| M9 | [docs/m9-workflow-template.md](docs/m9-workflow-template.md) | 通用定时巡检工作流模板（bug 源可换） |
+| M6 | [docs/m6-subagents.md](docs/m6-subagents.md) | pi-subagents 插件 + sessionOnly 定时任务 |
+| M7 | [docs/m7-schedule-status.md](docs/m7-schedule-status.md) | pi-schedule-status 状态栏插件 |
+| M8 | [docs/m8-workflow-template.md](docs/m8-workflow-template.md) | 通用定时巡检工作流模板（bug 源可换） |
 
 ## 💡 设计理念
 

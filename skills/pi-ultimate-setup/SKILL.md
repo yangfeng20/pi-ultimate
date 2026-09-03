@@ -1,6 +1,6 @@
 ---
 name: pi-ultimate-setup
-description: Pi 完全体引导。对用户的 Pi 环境做全量体检，报告缺失项，逐项引导增强（命令环境、TUI、超时、搜索工具、别名、代理、子 agent 插件、定时任务状态栏、工作流模板）。当用户说"帮我安装 pi-ultimate"、"搭建 pi 完全体"、"检测/增强我的 pi 环境"、"看看我的 pi 还缺什么"时使用。
+description: Pi 完全体引导。对用户的 Pi 环境做全量体检，报告缺失项，逐项引导增强（命令环境、TUI、超时、搜索工具、按需代理、子 agent 插件、定时任务状态栏、工作流模板）。当用户说"帮我安装 pi-ultimate"、"搭建 pi 完全体"、"检测/增强我的 pi 环境"、"看看我的 pi 还缺什么"时使用。
 ---
 
 # Pi Ultimate Setup — Pi 完全体引导 skill
@@ -24,7 +24,6 @@ description: Pi 完全体引导。对用户的 Pi 环境做全量体检，报告
 2. 收集一次性信息（缺的才问）：
    - 操作系统（自动探测，无需问）
    - 代理端口（如用户提到网络问题 / 有代理软件时才问；否则跳过该项）
-   - 常用命令别名需求（可选，不问则用默认推荐集）
 3. 开始体检。
 
 ## 2. 环境探测
@@ -67,11 +66,10 @@ ls ~/.pi/agent/skills/ 2>/dev/null
 | M2 TUI 模式 | 全部平台 | settings.json 中 `tuiMode` 为 `fullscreen` |
 | M3 命令超时 | 全部平台 | AGENTS.md 含 timeout 规范（grep ≤180s / 其他 ≤300s） |
 | M4 搜索工具链 | 全部平台 | rg 已安装；AGENTS.md 含排除产物目录 + rg 优先规则 |
-| M5 命令别名 | 全部平台 | shell 配置文件（.bashrc / .zshrc）含常用别名 |
-| M6 代理设置 | 全部平台 | 已配置按需代理（HTTPS_PROXY 等）或 AGENTS.md 有代理说明 |
-| M7 pi-subagents | 全部平台 | 插件已装且版本 ≥0.62（sessionOnly 能力） |
-| M8 pi-schedule-status | 全部平台 | 官方扩展库已安装该插件 |
-| M9 工作流模板 | 全部平台 | 已有自定义巡检/值班类 skill 或 AGENTS.md 有相关流程 |
+| M5 按需代理 | 全部平台 | 已配置 pi-p 包装命令（或 settings.json 的 httpProxy） |
+| M6 pi-subagents | 全部平台 | 插件已装且版本 ≥0.62（sessionOnly 能力） |
+| M7 pi-schedule-status | 全部平台 | 官方扩展库已安装该插件 |
+| M8 工作流模板 | 全部平台 | 已有自定义巡检/值班类 skill 或 AGENTS.md 有相关流程 |
 
 ## 4. 输出体检报告
 
@@ -81,7 +79,8 @@ ls ~/.pi/agent/skills/ 2>/dev/null
 ✅ M1 命令执行环境   已就绪（Git Bash 正常，编码/引号规范已注入）
 ⚠️ M2 TUI 模式       未开启（痛点：长输出滚屏与输入框打架，回看困难）
 ⚠️ M4 搜索工具链     rg 未安装（痛点：grep 扫 node_modules 会卡到怀疑人生）
-⏭ M6 代理设置       跳过（本次未提供代理信息）
+⚠️ M5 按需代理       未配置 pi-p（痛点：访问 GitHub 失败，又不想开全局代理）
+⏭ M5 按需代理       跳过（本次未提供代理信息）
 ```
 
 然后进入逐项处理：**只处理 ⚠️ 项，✅/⏭ 跳过**。
@@ -126,27 +125,19 @@ ls ~/.pi/agent/skills/ 2>/dev/null
   3. 将"搜索规范"（grep 一律用 rg，或 grep 必须排除产物目录）注入 AGENTS.md（见附录 A）。
 - 验证：`which rg`；`rg --version`；在示例目录跑一次 `rg "TODO"` 确认生效。
 
-### M5 命令别名
+### M5 按需代理（pi-p 包装命令）
 
-- 痛点：高频长命令（`git status`、`git log --oneline`、`ls -la` 等）重复输入累。
+- 痛点：国内访问 GitHub / 搜索国外资源失败；不想开全局代理，也不想所有 Pi 进程都走代理——要按需。
 - 增强动作：
-  - 探测 shell：`echo $SHELL`；Windows Git Bash 为 `.bashrc`，macOS 为 `.zshrc`。
-  - 将推荐别名集（见附录 B）追加到对应文件（先备份 + 去重）。
-  - 若用户有自己惯用的别名，让用户提供，追加时保留。
-- 验证：`source` 后 `type <别名>` 能解析。
+  1. 询问代理地址与端口（如 `127.0.0.1:7890`），一次问清；无代理则跳过并注明。
+  2. 按平台生成 pi-p：
+     - Windows：创建 `piproxy.cmd`（写入 `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY`，再 `pi.cmd %*`）放到 PATH 目录。
+     - macOS/Linux：生成 `pi-p()` shell 函数（同样写入代理环境变量）追加到 `~/.zshrc` / `~/.bashrc`。
+  3. 说明：想走代理用 `pi-p`，不想用 `pi`；`setlocal`/函数局部变量保证只影响 Pi 进程及其子进程。
+  4. 备选（全都要走代理时）：写 `httpProxy` 到 settings.json。
+- 验证：`pi-p` 后 `curl -I https://github.com` 返回 200；`pi` 不受影响。
 
-### M6 代理设置
-
-- 痛点：国内访问 GitHub / 搜索国外资源失败，但不想开全局代理。
-- 增强动作：
-  - 询问代理地址与端口（如 `127.0.0.1:7890`），一次问清。
-  - 按平台写入按需代理：
-    - 方案 A（推荐，按命令生效）：在 AGENTS.md 写明"访问国外资源时使用 `https_proxy=http://<host>:<port>`"，AI 在需要时自动带上。
-    - 方案 B（环境变量，可选）：写 shell profile，仅对子进程生效。
-  - 若用户无代理：跳过并在报告中注明，不阻塞其他模块。
-- 验证：`curl -x http://<host>:<port> -I https://github.com` 返回 200。
-
-### M7 pi-subagents（sessionOnly 能力）
+### M6 pi-subagents（sessionOnly 能力）
 
 - 痛点：定时任务被任意会话抢走执行，或想隔离"仅当前会话执行"的任务。
 - 增强动作：
@@ -155,7 +146,7 @@ ls ~/.pi/agent/skills/ 2>/dev/null
   - 在 AGENTS.md 注入"定时任务创建规范"（见附录 A）：需要仅当前会话执行时用 sessionOnly。
 - 验证：`pi --version`；读取扩展清单确认版本。
 
-### M8 pi-schedule-status 状态栏插件
+### M7 pi-schedule-status 状态栏插件
 
 - 痛点：定时任务跑了没跑、下次什么时候跑，全靠猜，肉眼不可见。
 - 增强动作：
@@ -163,7 +154,7 @@ ls ~/.pi/agent/skills/ 2>/dev/null
   - 装好后提醒用户重启 Pi 使状态栏生效，并说明它会显示：任务名、ON/OFF、下次执行时间、执行中状态。
 - 验证：读取扩展清单确认已安装；提示重启。
 
-### M9 工作流模板（通用定时巡检）
+### M8 工作流模板（通用定时巡检）
 
 - 痛点：bug 巡检、值班排查这种重复劳动，全靠人肉盯着群 / bug 源，费神易漏。
 - 增强动作：**不直接给死板模板**，而是引导用户抽象自己的场景：
@@ -222,27 +213,22 @@ ls ~/.pi/agent/skills/ 2>/dev/null
 - 必须用 grep 时，必须加 --exclude-dir=node_modules --exclude-dir=target --exclude-dir=dist --exclude-dir=.git。
 ```
 
-### A.4 定时任务
+### A.4 按需代理
+
+```
+## 按需代理（强制）
+- 访问国外资源（GitHub / 国外搜索/下载）时，使用 pi-p（写入代理环境变量后启动 pi）。
+- 国内资源 / 内网直连，用普通 pi，不带代理。
+- 代理地址与 NO_PROXY 见 pi-ultimate 文档 M5。
+```
+
+### A.5 定时任务
 
 ```
 ## 定时任务规范（强制）
 - 创建定时任务时，默认确认是否"仅当前会话执行"（sessionOnly）。
 - 巡检类任务：无新单静默，有新单才汇报。
 - 子 agent 隔离：不同任务/单子放独立子 agent，主会话只做汇总。
-```
-
-## 附录 B：推荐别名集
-
-```
-# 基础
-alias ls='ls -la'
-alias ll='ls -la'
-alias gs='git status'
-alias gl='git log --oneline -10'
-alias gp='git pull'
-alias gpo='git push origin HEAD'
-alias ..='cd ..'
-alias ...='cd ../..'
 ```
 
 ## 附录 C：通用定时巡检 skill 骨架

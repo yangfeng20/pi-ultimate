@@ -1,4 +1,4 @@
-# M7 pi-subagents 插件 + sessionOnly 定时任务
+# M6 pi-subagents 插件 + sessionOnly 定时任务
 
 > 目标：让子 agent 扛活（巡检、批量排查），定时任务按会话隔离，不串台。
 
@@ -34,7 +34,7 @@ pi update pi-subagents   # 或重装，以官方命令为准
   ```
   创建一个定时任务，每 30 分钟巡检 <目标>，仅当前会话执行（sessionOnly）
   ```
-- **配合**：与 M8 状态栏插件配合，可在 TUI 状态栏看到该任务的 ON/OFF 与下次执行时间。
+- **配合**：与 M7 状态栏插件配合，可在 TUI 状态栏看到该任务的 ON/OFF 与下次执行时间。
 
 ## 定时任务创建规范（建议注入 AGENTS.md）
 
