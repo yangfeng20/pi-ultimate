@@ -140,10 +140,10 @@ ls ~/.pi/agent/skills/ 2>/dev/null
   3. 生成（用户同意时）：
      - 询问代理地址与端口（如 `127.0.0.1:7890`），一次问清；无代理则跳过并注明。
      - 按平台生成 pi-p：
-       - Windows：创建 `piproxy.cmd`（写入 `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY`，再 `pi.cmd %*`）放到 PATH 目录。
+       - Windows：创建 `pi-p.cmd`（写入 `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY`，再 `pi.cmd %*`）放到 PATH 目录。文件名即命令名，必须与告知用户的调用名一致。
        - macOS/Linux：生成 `pi-p()` shell 函数（同样写入代理环境变量）追加到 `~/.zshrc` / `~/.bashrc`。
      - 说明：想走代理用 `pi-p`，不想用 `pi`；`setlocal`/函数局部变量保证只影响 Pi 进程及其子进程。
-  4. 备选（全都要走代理时）：写 `httpProxy` 到 settings.json。
+  4. 备选（全都要走代理时）：写 `httpProxy` 到 settings.json。与 pi-p 二选一，不要同时配——配了 httpProxy 后普通 `pi` 也走代理，pi-p 失去意义。
 - 验证：`pi-p` 后 `curl -I https://github.com` 返回 200；`pi` 不受影响。
 
 ### M6 pi-subagents（sessionOnly 能力）

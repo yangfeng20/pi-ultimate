@@ -17,7 +17,9 @@
 代理模式    pi-p          → 走代理（访问 GitHub / 国外搜索/下载）
 ```
 
-### Windows（`piproxy.cmd`，放到 PATH 目录）
+### Windows（`pi-p.cmd`，放到 PATH 目录）
+
+> 文件名即命令名：存成 `pi-p.cmd` 才能用 `pi-p` 调用；存成别的名字（如 `piproxy.cmd`）就得用那个名字调用。
 
 ```bat
 @echo off
@@ -58,12 +60,11 @@ pi-p --continue
 
 > 端口 `7890` 是示例，换成你代理软件的 HTTP / Mixed 端口（Clash 默认 7890、V2Ray 10809 等）。
 
-## 进阶：全局配置 httpProxy（可选）
+## 进阶：全局配置 httpProxy（可选，与 pi-p 二选一）
 
-如果希望**所有 Pi 项目/会话都走代理**，可以直接配置全局：
+如果希望**所有 Pi 项目/会话都走代理**，可以直接配置全局。编辑 `~/.pi/agent/settings.json`：
 
 ```json
-// ~/.pi/agent/settings.json
 {
   "httpProxy": "http://127.0.0.1:7890"
 }
@@ -71,7 +72,8 @@ pi-p --continue
 
 它会把 `HTTP_PROXY` / `HTTPS_PROXY` 应用到 Pi 进程及其子进程，不开系统代理。
 
-> ⚠️ 两个方案二选一：`settings.json` 是"全都要"，`pi-p` 是"按需要"。按需场景优先 `pi-p`。
+> ⚠️ **两个方案二选一，不要同时配**：`httpProxy` 是"全都要"，`pi-p` 是"按需要"。
+> 一旦配了 `httpProxy`，普通 `pi` 也会走代理，`pi-p` 就失去了存在意义。按需场景请只保留 `pi-p`。
 
 ## 相关细节（来自实战讨论）
 
@@ -96,6 +98,6 @@ curl -I https://github.com    # 走默认网络
 
 检测到用户未配置按需代理时：
 1. 询问代理地址与端口（如 `127.0.0.1:7890`），一次问清
-2. Windows：生成 `piproxy.cmd` 到 PATH 目录（如 Git 的 usr/bin 或用户目录）
+2. Windows：生成 `pi-p.cmd` 到 PATH 目录（如 Git 的 usr/bin 或用户目录），文件名必须与要调用的命令名一致
 3. macOS/Linux：生成 `pi-p` 函数追加到 `~/.zshrc` / `~/.bashrc`
 4. 验证：`pi-p` 后 `curl -I https://github.com` 返回 200
