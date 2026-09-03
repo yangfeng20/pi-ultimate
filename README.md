@@ -85,6 +85,12 @@
 | M7 | [docs/m7-schedule-status.md](docs/m7-schedule-status.md) | pi-schedule-status 状态栏插件 |
 | M8 | [docs/m8-workflow-template.md](docs/m8-workflow-template.md) | 通用定时巡检工作流模板（bug 源可换） |
 
+### 使用技巧（无需配置，直接用）
+
+| 技巧 | 文档 | 一句话说明 |
+|---|---|---|
+| T1 | [docs/tips-session-management.md](docs/tips-session-management.md) | 会话找回与命名（`/resume` 搜索、`/name` 命名、`/tree` 分支） |
+
 ## 💡 设计理念
 
 - **AI 当装配工，你只当验收员**：所有配置由 AI 自动执行，你只提供缺失信息（如代理端口）
